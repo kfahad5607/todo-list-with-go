@@ -25,6 +25,6 @@ var getCmd = &cobra.Command{
 		}
 
 		item := Store.ReadItem(taskId)
-		todo.DisplayItems([]todo.DataItem{item})
+		todo.DisplayItems([]todo.DataItem{item}, false)
 	},
 }

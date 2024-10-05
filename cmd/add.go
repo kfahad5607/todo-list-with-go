@@ -17,6 +17,6 @@ var addCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		taskName := args[0]
 		item := Store.CreateItem(taskName)
-		todo.DisplayItems([]todo.DataItem{item})
+		todo.DisplayItems([]todo.DataItem{item}, false)
 	},
 }

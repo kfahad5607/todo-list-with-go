@@ -6,7 +6,8 @@ import (
 )
 
 
-var Store todo.DataStore = todo.DataStore{ StoreName: "data.csv"}
+// var Store todo.DataStore = todo.CsvStore{ StoreName: "data.csv"}
+var Store todo.DataStore = todo.JsonStore{ StoreName: "data.json"}
 
 var rootCmd = &cobra.Command{
 	Use:   "tasks",

@@ -19,6 +19,6 @@ var listCmd = &cobra.Command{
 	Args: cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
 		items := Store.ReadItems(showAll)
-		todo.DisplayItems(items)
+		todo.DisplayItems(items, !showAll)
 	},
 }
