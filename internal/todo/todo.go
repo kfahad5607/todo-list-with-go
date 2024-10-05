@@ -51,49 +51,49 @@ func getTimeDiff(timeStr string) string {
 	minutes := int(s3.Minutes())
 
 	timeDiff := "a few seconds ago"
-	if minutes >= 525600{
+	if minutes >= 525600 {
 		years := minutes / 525600
 		if years == 1 {
 			timeDiff = "a year ago"
-		}else{
+		} else {
 			timeDiff = fmt.Sprintf("%v years ago", years)
 		}
-	}else if minutes >= 43800{
+	} else if minutes >= 43800 {
 		months := minutes / 43800
 		if months == 1 {
 			timeDiff = "a month ago"
-		}else{
+		} else {
 			timeDiff = fmt.Sprintf("%v months ago", months)
 		}
-	}else if minutes >= 10080{
+	} else if minutes >= 10080 {
 		weeks := minutes / 10080
 		if weeks == 1 {
 			timeDiff = "a week ago"
-		}else{
+		} else {
 			timeDiff = fmt.Sprintf("%v weeks ago", weeks)
 		}
-	}else if minutes >= 1440{
+	} else if minutes >= 1440 {
 		days := minutes / 1440
 		if days == 1 {
 			timeDiff = "a day ago"
-		}else{
+		} else {
 			timeDiff = fmt.Sprintf("%v days ago", days)
 		}
-	}else if minutes >= 60{
+	} else if minutes >= 60 {
 		hours := minutes / 60
 		if hours == 1 {
 			timeDiff = "an hour ago"
-		}else{
+		} else {
 			timeDiff = fmt.Sprintf("%v hours ago", hours)
 		}
-	}else if (minutes > 0){
+	} else if minutes > 0 {
 		if minutes == 1 {
 			timeDiff = "an minute ago"
-		}else{
+		} else {
 			timeDiff = fmt.Sprintf("%v minutes ago", minutes)
 		}
 	}
-	
+
 	return timeDiff
 }
 
@@ -123,7 +123,7 @@ func (store DataStore) ensureStoreExists() error {
 	return nil
 }
 
-func (store DataStore) ReadItems() (items []DataItem) {
+func (store DataStore) ReadItems(showAll bool) (items []DataItem) {
 	items = []DataItem{}
 
 	err := store.ensureStoreExists()
@@ -152,14 +152,22 @@ func (store DataStore) ReadItems() (items []DataItem) {
 		}
 
 		isComplete := record[3] == "true"
-		items = append(items, DataItem{ID: id, Description: &record[1], CreatedAt: &record[2], IsComplete: &isComplete})
+		isCompleteP := &isComplete
+		if !showAll {
+			if isComplete {
+				continue
+			}
+			isCompleteP = nil
+		}
+
+		items = append(items, DataItem{ID: id, Description: &record[1], CreatedAt: &record[2], IsComplete: isCompleteP})
 	}
 
 	return items
 }
 
-func (store DataStore)ReadItem(id int) (item DataItem){
-	records := store.ReadItems()
+func (store DataStore) ReadItem(id int) (item DataItem) {
+	records := store.ReadItems(true)
 
 	for _, record := range records {
 		if record.ID == id {
@@ -222,7 +230,7 @@ func (store DataStore) CreateItem(itemDescription string) (item DataItem) {
 
 func (store DataStore) UpdateItem(id int, item DataItem) (updatedItem DataItem) {
 	if !checkFileExists(store.StoreName) {
-		return 
+		return
 	}
 
 	file, err := os.OpenFile(store.StoreName, os.O_RDWR, 0644)
@@ -315,12 +323,29 @@ func (store DataStore) DeleteItem(id int) {
 
 func DisplayItems(items []DataItem) {
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 3, ' ', 0)
-	fmt.Fprintf(w, "%v \t%v\t%v\t%v \n ", "ID", "Task", "Created", "Done")
 
-	for _, item := range items {
-		if item.ID > 0{
-			fmt.Fprintf(w, "%v \t%v\t%v\t%v \n ", item.ID, *item.Description, getTimeDiff(*item.CreatedAt), *item.IsComplete)
+	showIsComplete := false
+	if len(items) > 0 {
+		showIsComplete = items[0].IsComplete != nil
+	}
+
+	if showIsComplete {
+		fmt.Fprintf(w, "%v \t%v\t%v\t%v \n ", "ID", "Task", "Created", "Done")
+
+		for _, item := range items {
+			if item.ID > 0 {
+				fmt.Fprintf(w, "%v \t%v\t%v\t%v \n ", item.ID, *item.Description, getTimeDiff(*item.CreatedAt), *item.IsComplete)
+			}
+		}
+	}else{
+		fmt.Fprintf(w, "%v \t%v\t%v \n ", "ID", "Task", "Created")
+
+		for _, item := range items {
+			if item.ID > 0 {
+				fmt.Fprintf(w, "%v \t%v\t%v \n ", item.ID, *item.Description, getTimeDiff(*item.CreatedAt))
+			}
 		}
 	}
+
 	w.Flush()
 }
