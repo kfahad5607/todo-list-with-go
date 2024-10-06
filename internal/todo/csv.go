@@ -12,7 +12,12 @@ type CsvStore struct {
 	StoreName string
 }
 
+func NewCsvStore(storeName string) *CsvStore{
+	store := CsvStore{StoreName: storeName + ".csv"}
+	store.ensureStoreExists()
 
+	return &store
+}
 
 func (store CsvStore) ensureStoreExists() error {
 	if checkFileExists(store.StoreName) {
@@ -42,12 +47,6 @@ func (store CsvStore) ensureStoreExists() error {
 
 func (store CsvStore) ReadItems(showAll bool) (items []DataItem) {
 	items = []DataItem{}
-
-	err := store.ensureStoreExists()
-	if CheckError(err, "While ensuring store exists") {
-		return
-	}
-
 	file, err := os.Open(store.StoreName)
 	if CheckError(err, "While opening file to read") {
 		return
@@ -93,11 +92,6 @@ func (store CsvStore) ReadItem(id int) (item DataItem) {
 }
 
 func (store CsvStore) CreateItem(itemDescription string) (item DataItem) {
-	err := store.ensureStoreExists()
-	if CheckError(err, "While ensuring store exists") {
-		return
-	}
-
 	file, err := os.OpenFile(store.StoreName, os.O_RDWR, os.ModePerm)
 	if CheckError(err, "While opening file to read") {
 		return
@@ -163,13 +157,11 @@ func (store CsvStore) UpdateItem(id int, item DataItem) (updatedItem DataItem) {
 			if item.Description != nil {
 				record[1] = *item.Description
 			}
-			if item.CreatedAt != nil {
-				record[2] = *item.CreatedAt
-			}
 			if item.IsComplete != nil {
 				record[3] = strconv.FormatBool(*item.IsComplete)
 			}
-			// updatedItem = DataItem{Description: &record[1], IsComplete: }
+			isComplete := record[3] == "true"
+			updatedItem = DataItem{ ID: id, Description: &record[1], CreatedAt: &record[2], IsComplete: &isComplete}
 
 			break
 		}
@@ -190,7 +182,7 @@ func (store CsvStore) UpdateItem(id int, item DataItem) (updatedItem DataItem) {
 		return
 	}
 
-	return DataItem{}
+	return
 }
 
 func (store CsvStore) DeleteItem(id int) {

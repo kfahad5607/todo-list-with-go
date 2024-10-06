@@ -9,7 +9,7 @@ import (
 )
 
 
-var debug_flag = false
+var debug_flag = true
 
 type DataItem struct {
 	ID          int

@@ -11,6 +11,13 @@ type JsonStore struct {
 	StoreName string
 }
 
+func NewJsonStore(storeName string) *JsonStore{
+	store := JsonStore{StoreName: storeName + ".json"}
+	store.ensureStoreExists()
+
+	return &store
+}
+
 func (store JsonStore) ensureStoreExists() error {
 	if checkFileExists(store.StoreName) {
 		return nil
@@ -34,12 +41,6 @@ func (store JsonStore) ensureStoreExists() error {
 
 func (store JsonStore) ReadItems(showAll bool) (items []DataItem) {
 	items = []DataItem{}
-
-	err := store.ensureStoreExists()
-	if CheckError(err, "While ensuring store exists") {
-		return
-	}
-
 	data, err := os.ReadFile(store.StoreName)
 	if CheckError(err, "While opening file to read") {
 		return
@@ -115,9 +116,6 @@ func (store JsonStore) UpdateItem(id int, item DataItem) (updatedItem DataItem) 
 		if items[i].ID == id {
 			if item.Description != nil {
 				items[i].Description = item.Description
-			}
-			if item.CreatedAt != nil {
-				items[i].CreatedAt = item.CreatedAt
 			}
 			if item.IsComplete != nil {
 				items[i].IsComplete = item.IsComplete
